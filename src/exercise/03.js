@@ -16,7 +16,11 @@ function Toggle({children}) {
 }
 
 const useToggleContext = () => {
-  const {on, toggle} = useContext(ToggleContext)
+  const toggleContext = useContext(ToggleContext)
+  if (!toggleContext) {
+    throw new Error('you should have the Toggle component')
+  }
+  const {on, toggle} = toggleContext
   return [on, toggle]
 }
 
