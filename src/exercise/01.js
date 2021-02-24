@@ -1,18 +1,12 @@
-// Context Module Functions
-// http://localhost:3000/isolated/exercise/01.js
-
 import * as React from 'react'
 import {dequal} from 'dequal'
-
-// ./context/user-context.js
-
 import * as userClient from '../user-client'
 import {useAuth} from '../auth-context'
 
 const UserContext = React.createContext()
 UserContext.displayName = 'UserContext'
 
-function userReducer(state, action) {
+const userReducer = (state, action) => {
   switch (action.type) {
     case 'start update': {
       return {
@@ -53,7 +47,7 @@ function userReducer(state, action) {
   }
 }
 
-function UserProvider({children}) {
+const UserProvider = ({children}) => {
   const {user} = useAuth()
   const [state, dispatch] = React.useReducer(userReducer, {
     status: null,
@@ -65,7 +59,7 @@ function UserProvider({children}) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
-function useUser() {
+const useUser = () => {
   const context = React.useContext(UserContext)
   if (context === undefined) {
     throw new Error(`useUser must be used within a UserProvider`)
@@ -73,15 +67,15 @@ function useUser() {
   return context
 }
 
-// 🐨 add a function here called `updateUser`
-// Then go down to the `handleSubmit` from `UserSettings` and put that logic in
-// this function. It should accept: dispatch, user, and updates
+const updateUser = (dispatch, user, updates) => {
+  dispatch({type: 'start update', updates})
+  userClient.updateUser(user, updates).then(
+    updatedUser => dispatch({type: 'finish update', updatedUser}),
+    error => dispatch({type: 'fail update', error}),
+  )
+}
 
-// export {UserProvider, useUser}
-
-// src/screens/user-profile.js
-// import {UserProvider, useUser} from './context/user-context'
-function UserSettings() {
+const UserSettings = () => {
   const [{user, status, error}, userDispatch] = useUser()
 
   const isPending = status === 'pending'
@@ -91,18 +85,14 @@ function UserSettings() {
 
   const isChanged = !dequal(user, formState)
 
-  function handleChange(e) {
+  const handleChange = e => {
     setFormState({...formState, [e.target.name]: e.target.value})
   }
 
-  function handleSubmit(event) {
+  const handleSubmit = event => {
     event.preventDefault()
     // 🐨 move the following logic to the `updateUser` function you create above
-    userDispatch({type: 'start update', updates: formState})
-    userClient.updateUser(user, formState).then(
-      updatedUser => userDispatch({type: 'finish update', updatedUser}),
-      error => userDispatch({type: 'fail update', error}),
-    )
+    updateUser(userDispatch, user, formState)
   }
 
   return (
@@ -173,28 +163,26 @@ function UserSettings() {
   )
 }
 
-function UserDataDisplay() {
+const UserDataDisplay = () => {
   const [{user}] = useUser()
   return <pre>{JSON.stringify(user, null, 2)}</pre>
 }
 
-function App() {
-  return (
-    <div
-      style={{
-        minHeight: 350,
-        width: 300,
-        backgroundColor: '#ddd',
-        borderRadius: 4,
-        padding: 10,
-      }}
-    >
-      <UserProvider>
-        <UserSettings />
-        <UserDataDisplay />
-      </UserProvider>
-    </div>
-  )
-}
+const App = () => (
+  <div
+    style={{
+      minHeight: 350,
+      width: 300,
+      backgroundColor: '#ddd',
+      borderRadius: 4,
+      padding: 10,
+    }}
+  >
+    <UserProvider>
+      <UserSettings />
+      <UserDataDisplay />
+    </UserProvider>
+  </div>
+)
 
 export default App
