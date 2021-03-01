@@ -1,31 +1,42 @@
 import * as React from 'react'
 import {Switch} from '../switch'
+import {useCallback} from 'react'
 
 const useToggle = () => {
   const [on, setOn] = React.useState(false)
   const toggle = () => setOn(!on)
-  const togglerProps = {
-    'aria-pressed': on,
-    onClick: toggle,
-  }
 
-  return {on, togglerProps}
+  // const callAll = (...fns) => (...args) => fns.forEach(fn => fn?.(...args))
+
+  const getToggleProps = useCallback(
+    ({onClick, ...otherProps}) => {
+      return {
+        'aria-pressed': on,
+        onClick: () => {
+          onClick && onClick()
+          toggle()
+        },
+        ...otherProps,
+      }
+    },
+    [toggle, on],
+  )
+
+  return {on, getToggleProps}
 }
 
 const App = () => {
-  const {on, togglerProps} = useToggle()
-  const {onClick} = togglerProps
+  const {on, getToggleProps} = useToggle()
   return (
     <div>
-      <Switch on={on} {...togglerProps} />
+      <Switch {...getToggleProps({on})} />
       <hr />
       <button
-        aria-label="custom-button"
-        {...togglerProps}
-        onClick={() => {
-          console.log('onButtonClick')
-          onClick()
-        }}
+        {...getToggleProps({
+          'aria-label': 'custom-button',
+          onClick: () => console.info('onButtonClick'),
+          id: 'custom-button-id',
+        })}
       >
         {on ? 'on' : 'off'}
       </button>
