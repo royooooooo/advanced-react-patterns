@@ -4,7 +4,8 @@ import {useCallback} from 'react'
 
 const useToggle = () => {
   const [on, setOn] = React.useState(false)
-  const toggle = () => setOn(!on)
+
+  const toggle = useCallback(() => setOn(!on), [on])
 
   // const callAll = (...fns) => (...args) => fns.forEach(fn => fn?.(...args))
 
@@ -19,7 +20,7 @@ const useToggle = () => {
         ...otherProps,
       }
     },
-    [toggle, on],
+    [on, toggle],
   )
 
   return {on, getToggleProps}
